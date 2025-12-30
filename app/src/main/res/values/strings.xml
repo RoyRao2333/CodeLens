@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">CodeLens</string>
+    <string name="tile_label">Scan QR</string>
+    <string name="scan_prompt">Point camera at a QR code</string>
+    <string name="permission_denied">Camera permission is required to scan code.</string>
+    <string name="gms_unavailable">Offline scanner activated.</string>
+    <string name="copy">Copy</string>
+    <string name="open_link">Open Link</string>
+    <string name="scanned_result">Scanned Content</string>
+</resources>
