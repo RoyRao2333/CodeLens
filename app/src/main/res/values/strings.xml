@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">CodeLens</string>
+    <string name="tile_name">扫一扫</string>
+    <string name="scan_error">扫描错误</string>
+    <string name="permission_camera_rationale">需要相机权限以进行离线扫描。</string>
+    <string name="copy">复制</string>
+    <string name="open_link">打开链接</string>
+    <string name="scan_result">扫描结果</string>
+</resources>

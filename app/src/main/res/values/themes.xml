@@ -1,0 +1,7 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.CodeLens" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your basic window style here. -->
+        <!-- <item name="android:statusBarColor">@android:color/transparent</item> -->
+    </style>
+</resources>
