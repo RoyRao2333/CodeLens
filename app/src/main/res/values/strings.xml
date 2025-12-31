@@ -6,4 +6,5 @@
     <string name="copy">复制</string>
     <string name="open_link">打开链接</string>
     <string name="scan_result">扫描结果</string>
+    <string name="tile_quick_scan_name">快速扫描</string>
 </resources>

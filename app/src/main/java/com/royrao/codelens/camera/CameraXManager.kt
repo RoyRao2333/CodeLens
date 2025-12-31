@@ -15,7 +15,7 @@ object CameraXManager {
         context: Context,
         lifecycleOwner: LifecycleOwner,
         previewView: PreviewView,
-        onResult: (String) -> Unit,
+        onResult: (List<com.google.mlkit.vision.barcode.common.Barcode>, Int, Int, Int) -> Unit,
     ) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
 
@@ -25,13 +25,15 @@ object CameraXManager {
 
                 // Preview
                 val preview =
-                    Preview.Builder().build().also {
-                        it.setSurfaceProvider(previewView.surfaceProvider)
-                    }
+                    Preview.Builder()
+                        .setTargetAspectRatio(androidx.camera.core.AspectRatio.RATIO_16_9)
+                        .build()
+                        .also { it.setSurfaceProvider(previewView.surfaceProvider) }
 
                 // Image Analysis
                 val imageAnalyzer =
                     ImageAnalysis.Builder()
+                        .setTargetAspectRatio(androidx.camera.core.AspectRatio.RATIO_16_9)
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build()
                         .also {

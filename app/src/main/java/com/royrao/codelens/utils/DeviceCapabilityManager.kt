@@ -1,7 +1,6 @@
 package com.royrao.codelens.utils
 
 import android.content.Context
-import android.os.Build
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 
@@ -16,36 +15,5 @@ object DeviceCapabilityManager {
         val googleApiAvailability = GoogleApiAvailability.getInstance()
         val resultCode = googleApiAvailability.isGooglePlayServicesAvailable(context)
         return resultCode == ConnectionResult.SUCCESS
-    }
-
-    /** Checks capabilities and saves them to SharedPreferences. Should be called on app startup. */
-    fun checkAndSaveCapabilities(context: Context) {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-
-        // We can optimize by only checking if OS version changed, or just check every time since
-        // it's
-        // fast enough usually?
-        // Requirement said: "Startup check logic" and "persistence".
-        // Let's check every time to be safe but cache result for synchronous access elsewhere.
-
-        val gmsAvailable = isGmsAvailable(context)
-
-        prefs.edit().apply {
-            putBoolean(KEY_GMS_AVAILABLE, gmsAvailable)
-            putString("manufacturer", Build.MANUFACTURER)
-            putString("model", Build.MODEL)
-            putInt("sdk_int", Build.VERSION.SDK_INT)
-            apply()
-        }
-    }
-
-    /** Retrieves the cached GMS availability state. Defaults to false if not checked yet. */
-    fun getCachedGmsState(context: Context): Boolean {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        // If not contained, fallback to checking (though this might be on main thread)
-        if (!prefs.contains(KEY_GMS_AVAILABLE)) {
-            return isGmsAvailable(context)
-        }
-        return prefs.getBoolean(KEY_GMS_AVAILABLE, false)
     }
 }
