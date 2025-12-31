@@ -13,6 +13,12 @@ android {
     namespace = "com.royrao.codelens"
     compileSdk = libs.versions.compileSdk.get().toInt()
 
+    sourceSets {
+        getByName("main") {
+            res.srcDirs("src/main/res", "src/main/res-assets")
+        }
+    }
+
     defaultConfig {
         applicationId = "com.royrao.codelens"
         minSdk = libs.versions.minSdk.get().toInt()
