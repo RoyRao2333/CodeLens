@@ -3,4 +3,12 @@
     <style name="Theme.CodeLens" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your basic window style here. -->
     </style>
+
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <!-- Set the splash screen background, animated icon, and branding image. -->
+        <item name="windowSplashScreenBackground">@android:color/black</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <!-- Set the theme of the Activity that directly follows your splash screen. -->
+        <item name="postSplashScreenTheme">@style/Theme.CodeLens</item>
+    </style>
 </resources>

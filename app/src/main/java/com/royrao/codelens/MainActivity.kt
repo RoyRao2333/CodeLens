@@ -18,18 +18,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.lifecycleScope
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 import com.royrao.codelens.camera.CameraXManager
 import com.royrao.codelens.ui.ScanResultDialog
 import com.royrao.codelens.utils.DeviceCapabilityManager
 import com.royrao.codelens.utils.ScanResultDispatcher
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
 
-        // Ensure capabilities are checked
-        DeviceCapabilityManager.checkAndSaveCapabilities(this)
+        var isReady = false
+        // Keep the splash screen visible until isReady is true
+        splashScreen.setKeepOnScreenCondition { !isReady }
+
+        // Perform initialization asynchronously
+        lifecycleScope.launch {
+            DeviceCapabilityManager.checkAndSaveCapabilities(this@MainActivity)
+            isReady = true
+        }
 
         val isGmsAvailable = DeviceCapabilityManager.getCachedGmsState(this)
 
