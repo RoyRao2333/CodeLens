@@ -38,8 +38,8 @@ CodeLens is a minimalist QR & Barcode scanner built with modern Android technolo
 ### Steps
 1. Clone the repository:
    ```bash
-   git clone https://github.com/RoyRao2333/code-lens.git
-   cd code-lens
+   git clone https://github.com/RoyRao2333/CodeLens.git
+   cd CodeLens
    ```
 
 2. Open the project in Android Studio.
@@ -53,6 +53,27 @@ CodeLens is a minimalist QR & Barcode scanner built with modern Android technolo
    ```bash
    ./gradlew installDebug
    ```
+
+
+## 🔐 Signing & Release
+
+To generate a signed release APK, you need a keystore. We provide a helper script to set this up quickly for local development.
+
+### 1. Setup Signing Config
+Run the setup script to generate a local keystore (`release-key.jks`) and configuration file (`keystore.properties`):
+```bash
+./setup-signing.sh
+```
+*Note: Your secrets are stored in `keystore.properties` which is git-ignored to protect your privacy.*
+
+### 2. Build Release APK
+```bash
+./gradlew assembleRelease
+```
+
+### 3. Output Location
+The signed APK will be generated at:
+`app/build/outputs/apk/release/app-release.apk`
 
 ## 🤝 Contributing
 

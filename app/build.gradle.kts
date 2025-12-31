@@ -1,3 +1,8 @@
+import java.io.FileInputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -6,27 +11,48 @@ plugins {
 
 android {
     namespace = "com.royrao.codelens"
-    compileSdk = 34
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
         applicationId = "com.royrao.codelens"
-        minSdk = 24
-        targetSdk = 34
+        minSdk = libs.versions.minSdk.get().toInt()
+        targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables {
-            useSupportLibrary = true
+        vectorDrawables { useSupportLibrary = true }
+    }
+
+    signingConfigs {
+        create("release") {
+            val keystorePropertiesFile = rootProject.file("keystore.properties")
+            val keystoreProperties = Properties()
+            if (keystorePropertiesFile.exists()) {
+                FileInputStream(keystorePropertiesFile).use { stream ->
+                    keystoreProperties.load(stream)
+                }
+            }
+
+            storeFile =
+                if (keystoreProperties.getProperty("storeFile") != null) {
+                    file(keystoreProperties.getProperty("storeFile"))
+                } else {
+                    null
+                }
+            storePassword = keystoreProperties.getProperty("storePassword")
+            keyAlias = keystoreProperties.getProperty("keyAlias")
+            keyPassword = keystoreProperties.getProperty("keyPassword")
         }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -34,14 +60,17 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "11"
-    }
-    buildFeatures {
-        compose = true
+    kotlinOptions { jvmTarget = "11" }
+    buildFeatures { compose = true }
+
+    applicationVariants.all {
+        outputs.all {
+            val output = this as? com.android.build.gradle.internal.api.BaseVariantOutputImpl
+            output?.outputFileName =
+                "CodeLens_${name}_${SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())}.apk"
+        }
     }
 }
-
 
 dependencies {
     implementation(libs.material)
@@ -55,10 +84,10 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    
+
     // GMS
     implementation(libs.play.services.code.scanner)
-    
+
     // MLKit & CameraX
     implementation(libs.mlkit.barcode.scanning)
     implementation(libs.androidx.camera.core)
