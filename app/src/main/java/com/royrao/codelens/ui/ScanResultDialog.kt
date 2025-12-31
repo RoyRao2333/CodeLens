@@ -6,19 +6,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 
 @Composable
-fun ScanResultDialog(
-    text: String,
-    onDismiss: () -> Unit,
-    onCopy: () -> Unit
-) {
+fun ScanResultDialog(text: String, onDismiss: () -> Unit, onCopy: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Text(text = "扫描结果")
-        },
-        text = {
-            Text(text = text)
-        },
+        title = { Text(text = "扫描结果") },
+        text = { Text(text = text) },
         confirmButton = {
             TextButton(
                 onClick = {
@@ -29,10 +21,6 @@ fun ScanResultDialog(
                 Text("复制")
             }
         },
-        dismissButton = {
-             TextButton(onClick = onDismiss) {
-                 Text("关闭")
-             }
-        }
+        dismissButton = { TextButton(onClick = onDismiss) { Text("关闭") } },
     )
 }

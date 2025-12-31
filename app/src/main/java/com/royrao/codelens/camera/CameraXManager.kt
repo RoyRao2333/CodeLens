@@ -15,47 +15,51 @@ object CameraXManager {
         context: Context,
         lifecycleOwner: LifecycleOwner,
         previewView: PreviewView,
-        onResult: (String) -> Unit
+        onResult: (String) -> Unit,
     ) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
 
-        cameraProviderFuture.addListener({
-            val cameraProvider = cameraProviderFuture.get()
+        cameraProviderFuture.addListener(
+            {
+                val cameraProvider = cameraProviderFuture.get()
 
-            // Preview
-            val preview = Preview.Builder()
-                .build()
-                .also {
-                    it.setSurfaceProvider(previewView.surfaceProvider)
+                // Preview
+                val preview =
+                    Preview.Builder().build().also {
+                        it.setSurfaceProvider(previewView.surfaceProvider)
+                    }
+
+                // Image Analysis
+                val imageAnalyzer =
+                    ImageAnalysis.Builder()
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                        .build()
+                        .also {
+                            it.setAnalyzer(
+                                Executors.newSingleThreadExecutor(),
+                                BarcodeAnalyzer(onResult),
+                            )
+                        }
+
+                // Select back camera
+                val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+                try {
+                    // Unbind use cases before rebinding
+                    cameraProvider.unbindAll()
+
+                    // Bind use cases to camera
+                    cameraProvider.bindToLifecycle(
+                        lifecycleOwner,
+                        cameraSelector,
+                        preview,
+                        imageAnalyzer,
+                    )
+                } catch (exc: Exception) {
+                    // Log.e(TAG, "Use case binding failed", exc)
                 }
-
-            // Image Analysis
-            val imageAnalyzer = ImageAnalysis.Builder()
-                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                .build()
-                .also {
-                    it.setAnalyzer(Executors.newSingleThreadExecutor(), BarcodeAnalyzer(onResult))
-                }
-
-            // Select back camera
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
-            try {
-                // Unbind use cases before rebinding
-                cameraProvider.unbindAll()
-
-                // Bind use cases to camera
-                cameraProvider.bindToLifecycle(
-                    lifecycleOwner,
-                    cameraSelector,
-                    preview,
-                    imageAnalyzer
-                )
-
-            } catch(exc: Exception) {
-                // Log.e(TAG, "Use case binding failed", exc)
-            }
-
-        }, ContextCompat.getMainExecutor(context))
+            },
+            ContextCompat.getMainExecutor(context),
+        )
     }
 }
