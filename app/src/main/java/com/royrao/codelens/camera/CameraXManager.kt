@@ -61,4 +61,19 @@ object CameraXManager {
       ContextCompat.getMainExecutor(context),
     )
   }
+
+  fun stopCamera(context: Context) {
+    val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+    cameraProviderFuture.addListener(
+      {
+        val cameraProvider = cameraProviderFuture.get()
+        try {
+          cameraProvider.unbindAll()
+        } catch (exc: Exception) {
+          // Log.e(TAG, "Unbind failed", exc)
+        }
+      },
+      ContextCompat.getMainExecutor(context),
+    )
+  }
 }

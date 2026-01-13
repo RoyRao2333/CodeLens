@@ -2,6 +2,7 @@ package com.royrao.codelens
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -11,6 +12,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,8 +24,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
@@ -96,7 +100,7 @@ class MainActivity : ComponentActivity() {
 
     // Always render CameraX as background/default
     // CameraXScanner will call onResult for ANY detected barcode
-    CameraXScanner(onResult = onResultHelper)
+    CameraXScanner(onResult = onResultHelper, isFrozen = showResultDialog)
 
     // Overlay: Bubble List
     // Fix: Explicitly align Box content to BottomCenter to ensure LazyColumn starts from
@@ -169,7 +173,7 @@ class MainActivity : ComponentActivity() {
   }
 
   @Composable
-  fun CameraXScanner(onResult: (String) -> Unit) {
+  fun CameraXScanner(onResult: (String) -> Unit, isFrozen: Boolean = false) {
     val context = LocalContext.current
     val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
     var hasPermission by remember { mutableStateOf(false) }
@@ -178,9 +182,41 @@ class MainActivity : ComponentActivity() {
     var detectedBarcodes by remember { mutableStateOf<List<Barcode>>(emptyList()) }
     var sourceInfo by remember { mutableStateOf<Triple<Int, Int, Int>?>(null) } // w, h, rotation
 
-    // Process detections continuously
-    LaunchedEffect(detectedBarcodes) {
-      detectedBarcodes.forEach { barcode -> barcode.rawValue?.let { onResult(it) } }
+    // Freeze state
+    var frozenBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+    // We need a persistent reference to the PreviewView to capture bitmap
+    var previewViewRef by remember { mutableStateOf<PreviewView?>(null) }
+
+    // Process detections continuously - ONLY if not frozen
+    LaunchedEffect(detectedBarcodes, isFrozen) {
+      if (!isFrozen) {
+        detectedBarcodes.forEach { barcode -> barcode.rawValue?.let { onResult(it) } }
+      }
+    }
+
+    // Handle Freeze/Resume
+    LaunchedEffect(isFrozen) {
+      if (isFrozen) {
+        // Capture bitmap
+        previewViewRef?.bitmap?.let { frozenBitmap = it }
+        // Stop camera to save resources/stop scanning
+        CameraXManager.stopCamera(context)
+      } else {
+        // Resume
+        frozenBitmap = null
+        // Camera start is handled by AndroidView update or we can ensure it here
+        previewViewRef?.let { view ->
+          CameraXManager.startCamera(
+            context = context,
+            lifecycleOwner = lifecycleOwner,
+            previewView = view,
+            onResult = { barcodes, width, height, rotation ->
+              detectedBarcodes = barcodes
+              sourceInfo = Triple(width, height, rotation)
+            },
+          )
+        }
+      }
     }
 
     val launcher =
@@ -200,27 +236,49 @@ class MainActivity : ComponentActivity() {
       Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(
           factory = { ctx ->
-            PreviewView(ctx).apply {
-              implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-              scaleType = PreviewView.ScaleType.FILL_CENTER
-            }
+            PreviewView(ctx)
+              .apply {
+                implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+                scaleType = PreviewView.ScaleType.FILL_CENTER
+              }
+              .also { previewViewRef = it }
           },
           modifier = Modifier.fillMaxSize(),
           update = { previewView ->
-            CameraXManager.startCamera(
-              context = context,
-              lifecycleOwner = lifecycleOwner,
-              previewView = previewView,
-              onResult = { barcodes, width, height, rotation ->
-                detectedBarcodes = barcodes
-                sourceInfo = Triple(width, height, rotation)
-              },
-            )
+            previewViewRef = previewView
+            if (!isFrozen) {
+              CameraXManager.startCamera(
+                context = context,
+                lifecycleOwner = lifecycleOwner,
+                previewView = previewView,
+                onResult = { barcodes, width, height, rotation ->
+                  detectedBarcodes = barcodes
+                  sourceInfo = Triple(width, height, rotation)
+                },
+              )
+            }
           },
         )
 
+        // Render frozen bitmap if available
+        if (frozenBitmap != null) {
+          androidx.compose.foundation.Image(
+            bitmap = frozenBitmap!!.asImageBitmap(),
+            contentDescription = "Frozen Preview",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+            // Note: PreviewView scaleType is FILL_CENTER, Crop is likely closest match
+            // We might need to match PreviewView's exact scaling behavior if it differs
+          )
+        }
+
         // Overlay Layer (Blue Dots)
-        if (detectedBarcodes.isNotEmpty() && sourceInfo != null) {
+        // Hide dots if frozen? Or keep them? Logic says stop detecting, so dots might
+        // disappear/stale.
+        // If frozen, we probably want to see the dots that WERE there.
+        // Since detectedBarcodes is state, it persists.
+        // But if we stop camera, we won't get updates.
+        if (detectedBarcodes.isNotEmpty() && sourceInfo != null && !isFrozen) {
           val (imgW, imgH, rotation) = sourceInfo!!
           val density = LocalDensity.current
 
@@ -235,6 +293,7 @@ class MainActivity : ComponentActivity() {
           Canvas(
             modifier =
               Modifier.fillMaxSize()
+
                 // Keep tap gestures if user wants to tap DOT to trigger bubble
                 // (technically it's already triggered)
                 // Or maybe tap dot to OPEN?
