@@ -2,19 +2,21 @@
 
 > Yet another code scanner for Android. Simple, fast, and ad-free.
 
-CodeLens is a minimalist QR & Barcode scanner built with modern Android technologies. It features a unique hybrid scanning engine that dynamically chooses between Google Play Services (GMS) and a local CameraX implementation to ensure the best experience on any device.
+CodeLens is a minimalist QR & Barcode scanner built with modern Android technologies. It offers flexibility by supporting both a standard in-app camera scanner and a lightweight Google Play Services (GMS) scanner.
 
 ## ✨ Features
 
-- **Hybrid Engine**:
-  - **GMS Mode**: leverages the [Google Play Services Code Scanner](https://developers.google.com/ml-kit/vision/barcode-scanning/code-scanner) for instant, permission-less scanning (zero camera permission required usually).
-  - **Offline Mode**: Seamlessly falls back to **CameraX + ML Kit** (bundled) for devices without GMS or offline environments.
-- **Quick Settings Tile**: Launch the scanner instantly from your system's Quick Settings panel (Notification shade).
+- **Dual Scanning Modes**:
+  - **CameraX Mode (Default)**: Uses the device camera with [ML Kit](https://developers.google.com/ml-kit/vision/barcode-scanning) for fast, offline scanning within the app. Requires camera permission.
+  - **GMS Quick Scan**: Leverages the [Google Play Services Code Scanner](https://developers.google.com/ml-kit/vision/barcode-scanning/code-scanner) for instant, installation-free scanning without requiring camera permissions in the app itself.
+- **Quick Settings Tiles**:
+  - **Scan (扫一扫)**: Launches the default in-app CameraX scanner.
+  - **Quick Scan (快速扫描)**: Directly launches the GMS barcode scanner overlay for rapid capture.
 - **Smart Actions**:
   - Automatically detects URLs and opens them in your default browser.
   - Copies plain text to clipboard.
   - Supports Magnet links and custom URI schemes.
-- **Privacy Focused**: No internet permission required for core functionality.
+- **Privacy Focused**: Core logic runs entirely on-device. Uses system capabilities where possible.
 - **Modern UI**: Built entirely with Jetpack Compose and Material 3.
 
 ## 🛠️ Technology Stack
