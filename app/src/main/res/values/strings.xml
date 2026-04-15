@@ -7,4 +7,7 @@
     <string name="open_link">打开链接</string>
     <string name="scan_result">扫描结果</string>
     <string name="tile_quick_scan_name">快速扫描</string>
+    <string name="gms_quick_scan_fallback">Google 快速扫描不可用，已切换到应用内扫描。</string>
+    <string name="gms_quick_scan_preparing">正在准备 Google 快速扫描，已先切换到应用内扫描。</string>
+    <string name="gms_quick_scan_unavailable">Google 快速扫描当前不可用，已切换到应用内扫描。</string>
 </resources>
